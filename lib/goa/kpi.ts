@@ -1,11 +1,11 @@
-import { DEFAULT_KPI, SP_PENALTY, type GoaTask, type KpiKey, type KpiParam, type TeamMember } from "./types";
+import { DEFAULT_KPI, SP_PENALTY, isClosed, type GoaTask, type KpiKey, type KpiParam, type TeamMember } from "./types";
 
 export type KpiResult = {
   score: number | null;
   raw: number | null;
   spPenalty: number;
   params: { key: KpiKey; label: string; weight: number; value: number | null; basis: string }[];
-  counts: { total: number; done: number; open: number; failed: number; rated: number; avgRating: number | null; overdueOpen: number };
+  counts: { total: number; done: number; open: number; failed: number; closed: number; rated: number; avgRating: number | null; overdueOpen: number };
 };
 
 const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : null);
@@ -20,7 +20,8 @@ export function computeKpi(member: Pick<TeamMember, "sp_level" | "sp_date">, tas
   const failed = tasks.filter((t) => t.status === "undone" || t.status === "expired");
   const open = tasks.filter((t) => t.status === "pending" || t.status === "in_progress");
   const closed = done.length + failed.length;
-  const rated = done.filter((t) => t.rating);
+  // Rating berlaku untuk semua tugas yang sudah ditutup, bukan hanya yang selesai.
+  const rated = tasks.filter((t) => isClosed(t) && t.rating);
   const avgRating = rated.length ? rated.reduce((a, t) => a + (t.rating ?? 0), 0) / rated.length : null;
 
   const onTime = done.filter((t) => {
@@ -58,11 +59,39 @@ export function computeKpi(member: Pick<TeamMember, "sp_level" | "sp_date">, tas
       done: done.length,
       open: open.length,
       failed: failed.length,
+      closed,
       rated: rated.length,
       avgRating,
       overdueOpen: open.filter((t) => t.is_overdue).length,
     },
   };
+}
+
+/** Grade KPI seperti GOA 5.5: ≤50 E, ≤60 D, ≤70 C, ≤80 B, ≤90 A, >90 A+. */
+export function kpiGrade(score: number | null) {
+  if (score === null) return null;
+  if (score <= 50) return "E";
+  if (score <= 60) return "D";
+  if (score <= 70) return "C";
+  if (score <= 80) return "B";
+  if (score <= 90) return "A";
+  return "A+";
+}
+
+export const GRADE_RANGES = [
+  { grade: "A+", range: "91–100" },
+  { grade: "A", range: "81–90" },
+  { grade: "B", range: "71–80" },
+  { grade: "C", range: "61–70" },
+  { grade: "D", range: "51–60" },
+  { grade: "E", range: "0–50" },
+];
+
+/** Cakupan penilaian reviewer: tugas tertutup yang ia review dan sudah diberi nilai. */
+export function reviewCoverage(reviewerId: string, tasks: GoaTask[]) {
+  const closed = tasks.filter((t) => t.reviewer_id === reviewerId && isClosed(t));
+  const rated = closed.filter((t) => t.rating).length;
+  return { closed: closed.length, rated, pct: closed.length ? Math.round((rated / closed.length) * 100) : null };
 }
 
 /** Parameter KPI yang berlaku untuk anggota (override per orang > GLOBAL). */
@@ -94,8 +123,8 @@ export function insightsFor(k: KpiResult, prev: KpiResult | null): Insight[] {
   if (k.counts.overdueOpen > 0) {
     out.push({ tone: "warn", title: `${k.counts.overdueOpen} tugas terbuka sudah lewat batas`, detail: "Selesaikan atau tutup dengan alasan supaya tidak menurunkan rasio selesai." });
   }
-  if (k.counts.done > 3 && k.counts.rated / k.counts.done < 0.5) {
-    out.push({ tone: "warn", title: "Banyak tugas selesai belum dinilai", detail: `${k.counts.done - k.counts.rated} dari ${k.counts.done} tugas belum diberi rating, sehingga KPI kualitas kurang akurat.` });
+  if (k.counts.closed > 3 && k.counts.rated / k.counts.closed < 0.5) {
+    out.push({ tone: "warn", title: "Banyak tugas ditutup belum dinilai", detail: `${k.counts.closed - k.counts.rated} dari ${k.counts.closed} tugas belum diberi rating, sehingga KPI rating kurang akurat.` });
   }
   if (k.spPenalty > 0) {
     out.push({ tone: "bad", title: `Penalti SP aktif −${k.spPenalty}`, detail: "SP berlaku 6 bulan sejak tanggal terbit." });

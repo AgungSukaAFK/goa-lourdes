@@ -18,7 +18,7 @@ import type { Option } from "@/components/option-select";
 import { useAction } from "@/hooks/use-action";
 import { GOA_TASK_STATUS } from "@/lib/status";
 import { cn, formatDateTime } from "@/lib/utils";
-import type { GoaTask } from "@/lib/goa/types";
+import { isClosed, type GoaTask } from "@/lib/goa/types";
 import { deleteTask, finishTask, rateTask, reopenTask, startTask } from "../actions";
 import { TaskFormDialog } from "./task-form";
 
@@ -100,13 +100,17 @@ export function RatingStars({ task, canRate }: { task: GoaTask; canRate: boolean
   );
 }
 
+/** Reviewer tugas / atasan boleh menilai tugas tertutup, kecuali tugasnya sendiri. */
+export const canRateTask = (task: GoaTask, ctx: Pick<TaskCtx, "selfId" | "isSupervisor">) =>
+  isClosed(task) && (ctx.isSupervisor || task.reviewer_id === ctx.selfId) && task.assignee_id !== ctx.selfId;
+
 /** Kartu tugas dengan aksi sesuai status & peran. */
 export function TaskCard({ task, ctx, compact }: { task: GoaTask; ctx: TaskCtx; compact?: boolean }) {
   const { run } = useAction();
   const mine = task.assignee_id === ctx.selfId;
   const open = task.status === "pending" || task.status === "in_progress";
   const canAct = ctx.canWork && (mine || !task.assignee_id || ctx.isSupervisor);
-  const canRate = task.status === "done" && (ctx.isSupervisor || task.reviewer_id === ctx.selfId) && task.assignee_id !== ctx.selfId;
+  const canRate = canRateTask(task, ctx);
 
   return (
     <div className="space-y-2 rounded-lg border bg-card p-3 text-sm shadow-xs">
@@ -191,7 +195,7 @@ export function TaskCard({ task, ctx, compact }: { task: GoaTask; ctx: TaskCtx; 
             </Link>
           </Button>
         )}
-        {task.status === "done" && <RatingStars task={task} canRate={canRate} />}
+        {isClosed(task) && <RatingStars task={task} canRate={canRate} />}
       </div>
     </div>
   );

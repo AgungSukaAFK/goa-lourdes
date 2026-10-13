@@ -255,6 +255,19 @@ for (const a of A.assets) {
     _photo: a.photo,
   });
 }
+// Aset yang sudah masuk lewat import-aktiva.mjs (Accurate) memakai kode baru. Kalau sistem lama
+// punya aset dengan Kode Accurate yang sama, kode lama (yang tertempel di label) yang dipakai,
+// supaya upsert di bawah menggabungkan, bukan menggandakan.
+const accCodes = assetRowsIn.map((a) => a.accurate_code).filter(Boolean);
+for (let i = 0; i < accCodes.length; i += 200) {
+  const { data } = await db.from("assets").select("id, code, accurate_code").like("legacy_id", "accurate:%").in("accurate_code", accCodes.slice(i, i + 200));
+  for (const a of data ?? []) {
+    const legacy = assetRowsIn.find((r) => r.accurate_code === a.accurate_code);
+    if (!legacy || legacy.code === a.code) continue;
+    R.note(`Aset Accurate ${a.accurate_code}: kode ${a.code} diganti kode lama ${legacy.code}.`);
+    if (!DRY) await db.from("assets").update({ code: legacy.code }).eq("id", a.id);
+  }
+}
 const assetRows = await upsert("assets", assetRowsIn.map(({ _photo, ...r }) => r), "code", "id, code, company");
 const assetByCode = new Map(assetRows.map((a) => [a.code, a]));
 R.count("aset", assetRows.length);

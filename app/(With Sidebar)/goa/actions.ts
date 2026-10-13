@@ -85,6 +85,31 @@ export async function rateTask(id: string, rating: number): Promise<ActionResult
   return done(`Dinilai ${rating}/5.`);
 }
 
+const idsSchema = z.array(z.string().uuid()).min(1, "Pilih minimal satu tugas.").max(500, "Maksimal 500 tugas sekali proses.");
+
+export async function rateTasks(ids: string[], rating: number): Promise<ActionResult> {
+  await requireModule("goa");
+  const p = idsSchema.safeParse(ids);
+  if (!p.success) return fail(p.error.issues[0].message);
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return fail("Nilai 1-5.");
+  const supabase = await createClient();
+  // Atomik: kalau satu tugas tidak boleh dinilai, tidak ada yang tersimpan.
+  const { data, error } = await supabase.rpc("goa_rate_tasks", { p_tasks: p.data, p_rating: rating });
+  if (error) return fail(dbError(error));
+  return done(`${data} tugas dinilai ${rating}/5.`);
+}
+
+export async function deleteTasks(ids: string[]): Promise<ActionResult> {
+  await requireModule("goa", ["supervisor"]);
+  const p = idsSchema.safeParse(ids);
+  if (!p.success) return fail(p.error.issues[0].message);
+  const supabase = await createClient();
+  const { error, count } = await supabase.from("goa_tasks").delete({ count: "exact" }).in("id", p.data);
+  if (error) return fail(dbError(error));
+  if (!count) return fail("Tidak ada tugas yang terhapus.");
+  return done(count < p.data.length ? `${count} dari ${p.data.length} tugas dihapus (sisanya tidak ditemukan / tanpa akses).` : `${count} tugas dihapus.`);
+}
+
 export async function reopenTask(id: string): Promise<ActionResult> {
   await requireModule("goa", ["supervisor"]);
   const supabase = await createClient();
@@ -97,10 +122,13 @@ export async function exportTasks(params: Record<string, string>): Promise<Actio
   await requireModule("goa");
   const supabase = await createClient();
   let q = supabase.from("goa_tasks_view").select("*").order("created_at", { ascending: false }).limit(10000);
-  if (params.status) q = q.eq("status", params.status);
+  if (params.status === "overdue") q = q.eq("is_overdue", true);
+  else if (params.status) q = q.eq("status", params.status);
   if (params.member === "pool") q = q.is("assignee_id", null);
   else if (params.member) q = q.eq("assignee_id", params.member);
   if (params.category) q = q.eq("job_category", params.category);
+  if (params.rated === "no") q = q.in("status", ["done", "undone", "expired"]).is("rating", null);
+  else if (params.rated === "yes") q = q.not("rating", "is", null);
   if (params.from) q = q.gte("created_at", `${params.from}T00:00:00+07:00`);
   if (params.to) q = q.lte("created_at", `${params.to}T23:59:59+07:00`);
   const { data, error } = await q;

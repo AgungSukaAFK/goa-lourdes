@@ -8,12 +8,13 @@ import { EmptyState } from "@/components/list/empty-state";
 import { StatusBadge } from "@/components/status-badge";
 import { KpiScore } from "@/components/kpi-score";
 import { requireGoa } from "@/lib/goa/guard";
-import { PERIODS, teamKpi } from "@/lib/goa/server";
+import { PERIODS, loadCategories, teamKpi } from "@/lib/goa/server";
 import { getCompanyFilter } from "@/lib/company";
 import { param, type SearchParams } from "@/lib/list";
 import { GOA_PRESENCE, GOA_SP } from "@/lib/status";
 import { MODULE_ROLE_LABELS } from "@/lib/types";
 import { MemberDialog } from "./member-dialog";
+import { KpiReportButton } from "./report-button";
 
 export const metadata: Metadata = { title: "Tim & KPI" };
 
@@ -21,11 +22,13 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const s = await requireGoa(["supervisor", "member"]);
   const period = param(sp, "period") || "month";
-  const rows = await teamKpi(await getCompanyFilter(s), period);
+  const [rows, categories] = await Promise.all([teamKpi(await getCompanyFilter(s), period), loadCategories()]);
   const members = rows.map((r) => ({ value: r.member.id, label: r.member.name }));
 
   return (
-    <Content title="Tim & KPI" description={`Skor dihitung dari tugas ${PERIODS.find((p) => p.value === period)?.label ?? ""} terakhir. Atur bobot di Pengaturan KPI.`}>
+    <Content title="Tim & KPI" description={`Skor dihitung dari tugas ${PERIODS.find((p) => p.value === period)?.label ?? ""} terakhir. Atur bobot di Pengaturan KPI.`}
+      cardAction={<KpiReportButton isSupervisor={s.isSupervisor} selfId={s.userId} members={members} categories={categories} />}
+    >
       <div className="space-y-4">
         <ListFilters search={false} fields={[{ type: "select", key: "period", label: "Periode", options: PERIODS }]} />
         {!rows.length ? (

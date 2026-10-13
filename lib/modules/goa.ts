@@ -1,6 +1,7 @@
 import {
   BookOpen,
   CalendarCog,
+  Gauge,
   ClipboardList,
   Kanban,
   LayoutDashboard,
@@ -36,7 +37,8 @@ export const goaModule: ModuleConfig = {
     {
       label: "Tim",
       items: [
-        { title: "Tim & KPI", url: "/goa/team", icon: UsersRound, roles: WORKERS, keywords: ["kpi", "tim", "matrix", "nilai", "sp"] },
+        { title: "Tim & KPI", url: "/goa/team", icon: UsersRound, roles: WORKERS, keywords: ["kpi", "tim", "matrix", "nilai", "sp", "rapor", "pdf", "grade"] },
+        { title: "Beban Kerja (WLA)", url: "/goa/workload", icon: Gauge, roles: WORKERS, keywords: ["wla", "beban kerja", "workload", "jam kerja", "utilisasi", "manpower"] },
         { title: "Saran Performa", url: "/goa/insights", icon: Lightbulb, roles: WORKERS, keywords: ["ai", "saran", "performa", "insight"] },
         { title: "Safety Topic", url: "/goa/safety", icon: ShieldCheck, keywords: ["k3", "safety", "keselamatan"] },
         { title: "Pengaturan KPI", url: "/goa/settings", icon: SlidersHorizontal, roles: ["supervisor"], keywords: ["bobot", "parameter", "kpi", "hari libur", "kategori"] },

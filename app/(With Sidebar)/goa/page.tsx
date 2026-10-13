@@ -12,6 +12,7 @@ import { getCompanyFilter } from "@/lib/company";
 import { GOA_TASK_STATUS } from "@/lib/status";
 import { createClient } from "@/lib/supabase/server";
 import { formatNumber } from "@/lib/utils";
+import { KpiSummary } from "./_components/kpi-summary";
 
 export const metadata: Metadata = { title: "Dashboard GOA" };
 
@@ -54,7 +55,14 @@ export default async function GoaDashboard() {
         hint="Masih terbuka"
       />
 
-      <Content size="md" title="Beban kerja" description="Tugas terbuka per PIC.">
+      <Content title="KPI tim" description="30 hari terakhir. Klik kotak untuk melihat rinciannya.">
+        <KpiSummary
+          period="month"
+          periodLabel="30 hari terakhir"
+          rows={ranking.map((r) => ({ id: r.member.id, name: r.member.name, title: r.member.title, kpi: r.kpi }))}
+        />
+      </Content>
+      <Content size="md" title="Beban kerja" description="Tugas terbuka per PIC. Analisis jam kerja ada di menu Beban Kerja (WLA).">
         <HorizontalBarChart label="Tugas" data={[...workload.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)} />
       </Content>
       <Content size="md" title="Status tugas 7 hari">

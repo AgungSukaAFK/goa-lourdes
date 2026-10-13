@@ -24,7 +24,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
 
   const team = rows.filter((r) => r.kpi.score !== null);
   const avg = team.length ? Math.round(team.reduce((a, r) => a + (r.kpi.score ?? 0), 0) / team.length) : null;
-  const unrated = rows.reduce((a, r) => a + (r.kpi.counts.done - r.kpi.counts.rated), 0);
+  const unrated = rows.reduce((a, r) => a + (r.kpi.counts.closed - r.kpi.counts.rated), 0);
 
   return (
     <>
@@ -37,7 +37,14 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
           {s.isSupervisor && (
             <p className="text-sm text-muted-foreground">
               Rata-rata KPI tim: <span className="font-medium text-foreground">{avg ?? "-"}</span>
-              {unrated > 0 && ` · ${unrated} tugas selesai belum dinilai`}
+              {unrated > 0 && (
+                <>
+                  {" · "}
+                  <Link href="/goa/tasks?rated=no" className="text-primary hover:underline">
+                    {unrated} tugas ditutup belum dinilai
+                  </Link>
+                </>
+              )}
             </p>
           )}
         </div>

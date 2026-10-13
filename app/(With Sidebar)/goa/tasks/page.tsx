@@ -38,6 +38,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   else if (member) query = query.eq("assignee_id", member);
   const category = param(sp, "category");
   if (category) query = query.eq("job_category", category);
+  const rated = param(sp, "rated");
+  if (rated === "no") query = query.in("status", ["done", "undone", "expired"]).is("rating", null);
+  else if (rated === "yes") query = query.not("rating", "is", null);
   const type = param(sp, "type");
   if (type) query = query.eq("type", type);
   const f = param(sp, "from");
@@ -52,7 +55,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const rows = (data ?? []) as GoaTask[];
 
   return (
-    <Content title="Tabel Tugas" description="Semua tugas tim dengan filter, nilai, dan export." cardAction={<NewTaskButton ctx={ctx} />}>
+    <Content title="Tabel Tugas" description="Semua tugas tim dengan filter, nilai, dan export. Centang beberapa tugas untuk memberi nilai sekaligus." cardAction={<NewTaskButton ctx={ctx} />}>
       <div className="space-y-4">
         <ListFilters
           searchPlaceholder="Cari judul, kode, deskripsi..."
@@ -61,6 +64,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             { type: "select", key: "status", label: "Status", options: Object.entries(GOA_TASK_STATUS).map(([value, d]) => ({ value, label: d.label })) },
             { type: "select", key: "member", label: "PIC", options: [{ value: "pool", label: "General Pool" }, ...ctx.members] },
             { type: "select", key: "category", label: "Kategori", options: ctx.categories.map((c) => ({ value: c, label: c })) },
+            { type: "select", key: "rated", label: "Nilai", options: [{ value: "no", label: "Belum dinilai" }, { value: "yes", label: "Sudah dinilai" }] },
             { type: "select", key: "type", label: "Tipe", options: [{ value: "once", label: "Sekali" }, { value: "routine", label: "Rutin" }] },
             { type: "date", key: "from", label: "Dibuat dari" },
             { type: "date", key: "to", label: "Dibuat sampai" },

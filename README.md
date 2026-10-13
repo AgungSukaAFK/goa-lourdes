@@ -73,6 +73,20 @@ npm run db:push              # supabase db push memakai SUPABASE_DB_URL
    ```
    Opsi lain: `--accounts=none` (tanpa membuat akun login), `--skip-photos`.
 
+### Aktiva tetap dari Accurate
+
+Export "Ringkasan Daftar Aktiva Tetap" (.xls/.xlsx) bisa langsung diimport ke Asset:
+
+```bash
+node --env-file=.env.local scripts/migrate/import-aktiva.mjs "Aktiva Tetap All.xls" --dry-run
+node --env-file=.env.local scripts/migrate/import-aktiva.mjs "Aktiva Tetap All.xls"
+```
+
+Satu Kode Aktiva menjadi satu aset (Kode Accurate disimpan di `accurate_code`, kode aset dibuat dari format PT).
+Keterangan lokasi/pemegang di akhir nama dipindah ke catatan, site (HO/BPN/Tabalong) dan status Rusak/Hilang
+ditebak dari teks. Aman diulang: aset yang sudah ada dilewati (`--update` memperbarui harga & tanggal).
+`--fleet` ikut membuat kendaraan berplat di Fleet. Rincian per baris ada di `aktiva-import-report.md`.
+
 Yang dilakukan importer: karyawan digabung berdasarkan NRP, kendaraan Fleet dan GOA digabung berdasarkan
 plat, P2H dari kedua sistem masuk ke satu tabel, task "Rutin" GOA dijadikan template (yang diblokir
 menjadi nonaktif), foto base64 dan Google Drive (yang publik) dipindah ke Storage, dan akun dibuat untuk
