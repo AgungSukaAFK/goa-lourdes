@@ -29,3 +29,26 @@ export const COMPANY_TONE: Record<string, Tone> = {
   GIS: "emerald",
   LOURDES: "gray",
 };
+
+// ---------------------------------------------------------------- Asset
+export const ASSET_STATUS: StatusMap = {
+  ready: { label: "Ready", tone: "green" },
+  loaned: { label: "Dipinjam", tone: "amber" },
+  damaged: { label: "Rusak", tone: "red" },
+  lost: { label: "Hilang", tone: "orange" },
+  disposed: { label: "Disposal", tone: "gray" },
+};
+
+export const ASSET_REQUEST_STATUS: StatusMap = {
+  pending: { label: "Menunggu GA", tone: "blue" },
+  approved: { label: "Disetujui", tone: "green" },
+  rejected: { label: "Ditolak", tone: "red" },
+  returned: { label: "Dikembalikan", tone: "emerald" },
+  overdue: { label: "Terlambat", tone: "orange" },
+};
+
+export const ASSET_AUDIT_STATUS: StatusMap = {
+  waiting: { label: "Menunggu cek", tone: "blue" },
+  fulfilled: { label: "Selesai", tone: "emerald" },
+  overdue: { label: "Lewat jatuh tempo", tone: "orange" },
+};

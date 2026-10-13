@@ -61,3 +61,7 @@ export const formatDateTime = (date?: string | Date | null): string => {
     timeZone: "Asia/Jakarta",
   });
 };
+
+/** "Rp 1,2 M" / "Rp 350 jt" untuk angka besar di dashboard. */
+export const formatRupiahShort = (v: number): string =>
+  v >= 1e9 ? `Rp ${formatNumber(v / 1e9, 1)} M` : v >= 1e6 ? `Rp ${formatNumber(v / 1e6, 1)} jt` : formatCurrency(v);
