@@ -21,3 +21,5 @@ public/sw.js
 public/sw.js.map
 public/swe-worker-*.js
 scripts/dev/
+migration-data/
+migration-report.md

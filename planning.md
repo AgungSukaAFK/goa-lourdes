@@ -361,6 +361,23 @@ Dry-run dulu ke database lokal (`supabase start`), baru ke production.
 Setiap fase diakhiri dengan `build` + `lint` + tes manual di browser. Commit
 dilakukan per fase.
 
-## 12. Pertanyaan terbuka
+## 12. Status pengerjaan (2026-10-13)
+
+| Fase | Status |
+|---|---|
+| 0. Fondasi | Selesai |
+| 1. Core | Selesai |
+| 2. Asset | Selesai |
+| 3. Fleet | Selesai |
+| 4. GOA | Selesai |
+| 5. Polish | Selesai (notifikasi realtime, pengumuman, PWA offline) |
+| 6. Migrasi | Script siap & teruji dengan data contoh. Menunggu data asli. |
+
+Perbedaan dari rencana awal:
+- Excel memakai `exceljs` (bukan `xlsx` yang ber-CVE), mengikuti ga-web.
+- Tidak ada halaman wajib ganti password (keputusan user).
+- KPI GOA dihitung dari data nyata. Sistem lama memakai angka tetap untuk beberapa parameter.
+
+## 13. Pertanyaan terbuka
 
 Tidak ada. Semua sudah dijawab per 2026-10-13.
