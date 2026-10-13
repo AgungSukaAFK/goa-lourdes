@@ -1,0 +1,22 @@
+# deps
+/node_modules
+# next
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+# env
+.env*
+!.env.example
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.vercel
+# supabase
+supabase/.temp
+supabase/.branches
+# serwist output
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js
