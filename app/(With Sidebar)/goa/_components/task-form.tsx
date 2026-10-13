@@ -37,7 +37,7 @@ export function TaskFormDialog({
   const { run } = useAction();
   const [assignee, setAssignee] = useState(task?.assignee_id ?? (isSupervisor ? POOL : selfId));
   const [reviewer, setReviewer] = useState(task?.reviewer_id ?? "");
-  const [category, setCategory] = useState(task?.job_category ?? categories[0] ?? "");
+  const [category, setCategory] = useState(task?.job_category ?? "");
   const [company, setCompany] = useState<string>(task?.company ?? companies[0]?.value ?? "");
   const assigneeOpts = isSupervisor
     ? [{ value: POOL, label: "General Pool (siapa saja)" }, ...members]
@@ -64,7 +64,7 @@ export function TaskFormDialog({
           <OptionSelect value={reviewer} onValueChange={setReviewer} options={[{ value: "", label: "Atasan mana saja" }, ...members]} />
         </Field>
         <Field label="Kategori">
-          <OptionSelect value={category} onValueChange={setCategory} options={categories.map((c) => ({ value: c, label: c }))} />
+          <OptionSelect value={category} onValueChange={setCategory} options={[{ value: "", label: "Tanpa kategori" }, ...categories.map((c) => ({ value: c, label: c }))]} />
         </Field>
         <Field label="Batas waktu" htmlFor="tk-due">
           <Input id="tk-due" name="due_at" type="datetime-local" defaultValue={toLocalInput(task?.due_at ?? null)} />

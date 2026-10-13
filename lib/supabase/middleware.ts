@@ -53,6 +53,8 @@ export async function updateSession(request: NextRequest) {
   const userId = data?.claims?.sub as string | undefined;
 
   const { pathname } = request.nextUrl;
+  // Halaman offline selalu bisa diakses (di-precache service worker).
+  if (pathname === "/offline") return response;
   const isPublic = PUBLIC_PATHS.includes(pathname);
   const isPending = pathname === PENDING_PATH;
 
@@ -91,7 +93,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (!active) {
-    return isPending || pathname === "/offline" ? response : redirectTo(PENDING_PATH);
+    return isPending ? response : redirectTo(PENDING_PATH);
   }
 
   if (isPublic || isPending) {

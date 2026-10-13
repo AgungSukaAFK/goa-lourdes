@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createClient } from "@/lib/supabase/client";
+import { subscribeAuthed } from "@/lib/supabase/realtime";
 
 const RouteMap = dynamic(() => import("@/components/map/route-map"), { ssr: false, loading: () => <Skeleton className="h-80 w-full" /> });
 
@@ -27,21 +27,16 @@ export function LiveRoute({
 
   useEffect(() => {
     if (!live) return;
-    const supabase = createClient();
-    const ch = supabase
-      .channel(`trip-${bookingId}`)
-      .on(
+    return subscribeAuthed(`trip-${bookingId}`, (ch) =>
+      ch.on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "fleet_trip_points", filter: `booking_id=eq.${bookingId}` },
         (payload) => {
           const p = payload.new as { lat: number; lng: number };
           setRoute((r) => [...r, [p.lat, p.lng]]);
         },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
+      ),
+    );
   }, [bookingId, live]);
 
   const pos = route.at(-1);

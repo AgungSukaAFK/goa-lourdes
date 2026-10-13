@@ -40,10 +40,11 @@ export function AppBreadcrumb() {
           const last = i === visible.length - 1;
           return (
             <Fragment key={href}>
-              <BreadcrumbSeparator className={i === 0 ? "hidden md:block" : undefined} />
-              <BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              {/* Di layar kecil hanya halaman terakhir yang tampil. */}
+              <BreadcrumbItem className={last ? "min-w-0" : "hidden md:inline-flex"}>
                 {last ? (
-                  <BreadcrumbPage>{label}</BreadcrumbPage>
+                  <BreadcrumbPage className="truncate">{label}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link href={href}>{label}</Link>

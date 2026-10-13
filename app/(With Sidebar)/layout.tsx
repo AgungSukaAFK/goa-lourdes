@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/shell/app-sidebar";
 import { AppBreadcrumb } from "@/components/shell/app-breadcrumb";
 import { CompanyFilter } from "@/components/shell/company-filter";
 import { CompanyAccent } from "@/components/shell/company-accent";
+import { NotificationBell } from "@/components/shell/notification-bell";
 import { requireSession } from "@/lib/auth/session";
 import { canSwitchCompany, getCompanyFilter } from "@/lib/company";
 import { signedUrl } from "@/lib/storage";
@@ -44,13 +45,14 @@ export default async function SidebarLayout({ children }: { children: React.Reac
         />
         <SidebarInset>
           <header className="no-print flex h-16 shrink-0 items-center justify-between gap-2 px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
               <AppBreadcrumb />
             </div>
             <div className="flex shrink-0 items-center gap-1">
               {canSwitchCompany(session) && <CompanyFilter value={filter} />}
+              <NotificationBell userId={session.userId} />
               <div className="hidden items-center sm:flex">
                 <AccentThemeSwitcher />
                 <FontSwitcher />

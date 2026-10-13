@@ -15,7 +15,7 @@ export function CompanyFilter({ value }: { value: "GMI" | "GIS" | null }) {
       onValueChange={(v) => start(() => setCompanyFilter(v as "ALL" | "GMI" | "GIS"))}
       disabled={pending}
     >
-      <SelectTrigger size="sm" className="w-[9.5rem]" aria-label="Filter perusahaan">
+      <SelectTrigger size="sm" className="w-[7.5rem] sm:w-[9.5rem]" aria-label="Filter perusahaan">
         {pending ? (
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
         ) : (

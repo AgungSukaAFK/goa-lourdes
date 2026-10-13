@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Radio } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createClient } from "@/lib/supabase/client";
+import { subscribeAuthed } from "@/lib/supabase/realtime";
 import { cn, formatDateTime } from "@/lib/utils";
 
 const RouteMap = dynamic(() => import("@/components/map/route-map"), { ssr: false, loading: () => <Skeleton className="h-[32rem] w-full" /> });
@@ -29,18 +29,16 @@ export function LiveMap({ trips: initial, pool }: { trips: Trip[]; pool: [number
 
   useEffect(() => {
     const ids = new Set(initial.map((t) => t.id));
-    const supabase = createClient();
-    const ch = supabase
-      .channel("fleet-monitoring")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "fleet_trip_points" }, (payload) => {
+    const unsub = subscribeAuthed("fleet-monitoring", (ch) =>
+      ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "fleet_trip_points" }, (payload) => {
         const p = payload.new as { booking_id: string; lat: number; lng: number; recorded_at: string };
         if (!ids.has(p.booking_id)) return;
         setTrips((ts) => ts.map((t) => (t.id === p.booking_id ? { ...t, lat: p.lat, lng: p.lng, seen: p.recorded_at } : t)));
-      })
-      .subscribe();
+      }),
+    );
     const tick = setInterval(() => setNow(Date.now()), 15000);
     return () => {
-      supabase.removeChannel(ch);
+      unsub();
       clearInterval(tick);
     };
   }, [initial]);
