@@ -52,3 +52,41 @@ export const ASSET_AUDIT_STATUS: StatusMap = {
   fulfilled: { label: "Selesai", tone: "emerald" },
   overdue: { label: "Lewat jatuh tempo", tone: "orange" },
 };
+
+// ---------------------------------------------------------------- Fleet
+export const FLEET_VEHICLE_STATUS: StatusMap = {
+  available: { label: "Tersedia", tone: "green" },
+  in_use: { label: "Dipakai", tone: "blue" },
+  grounded: { label: "Tidak layak", tone: "red" },
+  maintenance: { label: "Perawatan", tone: "orange" },
+  inactive: { label: "Nonaktif", tone: "gray" },
+};
+
+export const FLEET_BOOKING_STATUS: StatusMap = {
+  pending: { label: "Menunggu GA", tone: "blue" },
+  approved: { label: "Disetujui", tone: "sky" },
+  in_use: { label: "Dalam perjalanan", tone: "indigo" },
+  completed: { label: "Selesai", tone: "emerald" },
+  rejected: { label: "Ditolak", tone: "red" },
+  cancelled: { label: "Dibatalkan", tone: "gray" },
+};
+
+export const FLEET_P2H_RESULT: StatusMap = {
+  fit: { label: "Layak", tone: "green" },
+  caution: { label: "Layak dg catatan", tone: "amber" },
+  grounded: { label: "Tidak layak", tone: "red" },
+};
+
+export const FLEET_REPAIR_STATUS: StatusMap = {
+  queued: { label: "Antrean", tone: "gray" },
+  in_progress: { label: "Dikerjakan", tone: "blue" },
+  done: { label: "Selesai", tone: "emerald" },
+  cancelled: { label: "Dibatalkan", tone: "gray" },
+};
+
+export const FLEET_FUEL_RATING: StatusMap = {
+  very_efficient: { label: "Sangat irit", tone: "emerald" },
+  efficient: { label: "Irit", tone: "green" },
+  fair: { label: "Cukup", tone: "amber" },
+  wasteful: { label: "Boros", tone: "red" },
+};

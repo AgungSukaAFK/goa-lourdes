@@ -4,7 +4,10 @@ import { Content } from "@/components/content";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { HorizontalBarChart } from "@/components/dashboard/bar-chart-card";
 import { StatusBreakdown } from "@/components/dashboard/breakdown-list";
+import { redirect } from "next/navigation";
 import { requireAssetMenu } from "@/lib/asset/guard";
+import { assetCan, requireModule } from "@/lib/auth/session";
+import { visibleGroups } from "@/lib/modules";
 import { getCompanyFilter } from "@/lib/company";
 import { ASSET_STATUS } from "@/lib/status";
 import { createClient } from "@/lib/supabase/server";
@@ -30,6 +33,11 @@ type Dash = {
 };
 
 export default async function AssetDashboard() {
+  const session = await requireModule("asset");
+  if (!assetCan(session, "dashboard", "read")) {
+    const first = visibleGroups({ isModerator: session.profile.is_moderator, access: session.access }, "asset")[0]?.items[0];
+    if (first && first.url !== "/asset") redirect(first.url);
+  }
   const s = await requireAssetMenu("dashboard");
   const filter = await getCompanyFilter(s);
   const supabase = await createClient();
