@@ -22,6 +22,7 @@ import { setPendingNavUrl, usePendingNavUrl } from "@/lib/sidebar/nav-pending";
 
 type NavItem = {
   label?: string;
+  keywords?: string[];
   title: string;
   url: string;
   icon?: LucideIcon;
@@ -38,8 +39,11 @@ export function NavMain({
   label = "Menu",
   hideable = true,
   searching = false,
+  storageKey,
 }: {
   label?: string;
+  /** Kunci penyimpanan menu tersembunyi (default = label). */
+  storageKey?: string;
   items: NavItem[];
   /**
    * Kalau false, tombol "Atur" tidak muncul & semua item selalu tampil -
@@ -57,7 +61,7 @@ export function NavMain({
   const pathname = usePathname();
   const pendingUrl = usePendingNavUrl();
   const { isMobile, setOpenMobile } = useSidebar();
-  const { hiddenUrls, toggleUrl } = useSidebarGroupVisibility(label);
+  const { hiddenUrls, toggleUrl } = useSidebarGroupVisibility(storageKey ?? label);
   // Popover Radix baru dirender setelah mount: id aria-controls dari useId
   // bisa beda antara SSR & klien (hydration mismatch), jadi sebelum mount
   // cukup tampilkan tombol biasa yang tampilannya sama.

@@ -1,10 +1,8 @@
-import {
-  ChevronsUpDown,
-  ImageIcon,
-  LogOut,
-  SquareUserRound,
-} from "lucide-react";
+"use client";
 
+import Link from "next/link";
+import { useState } from "react";
+import { ChevronsUpDown, ImageIcon, LogOut, SquareUserRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -21,46 +19,50 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { MyAlertDialog } from "./dialog-confirm";
-import { redirect } from "next/navigation";
+import { MyAlertDialog } from "@/components/dialog-confirm";
+import { AvatarViewerDialog } from "@/components/avatar-viewer-dialog";
 import { getInitials } from "@/lib/avatar";
-import { AvatarViewerDialog } from "./avatar-viewer-dialog";
+import { signOut } from "@/app/(auth)/actions";
 
 export function NavUser({
   user,
 }: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
+  user: { name: string; subtitle: string; avatar: string | null };
 }) {
-  const [logoutDialog, setLogoutDialog] = useState<boolean>(false);
+  const [logoutDialog, setLogoutDialog] = useState(false);
   const [avatarViewer, setAvatarViewer] = useState(false);
-
   const { isMobile } = useSidebar();
 
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    redirect("/auth/login");
-  }
+  const avatar = (
+    <Avatar className="h-8 w-8 rounded-lg">
+      {user.avatar && <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />}
+      <AvatarFallback className="rounded-lg">{getInitials(user.name)}</AvatarFallback>
+    </Avatar>
+  );
+  const identity = (
+    <div className="grid flex-1 text-left text-sm leading-tight">
+      <span className="truncate font-medium">{user.name}</span>
+      <span className="truncate text-xs text-muted-foreground">{user.subtitle}</span>
+    </div>
+  );
 
   return (
     <>
       <MyAlertDialog
         open={logoutDialog}
         onOpenChange={setLogoutDialog}
-        onAction={handleLogout}
-      ></MyAlertDialog>
+        title="Keluar dari GOA HZ?"
+        description="Anda perlu masuk lagi untuk melanjutkan."
+        actionText="Keluar"
+        cancelText="Batal"
+        onAction={() => signOut()}
+      />
       {user.avatar && (
         <AvatarViewerDialog
           open={avatarViewer}
           onOpenChange={setAvatarViewer}
           src={user.avatar}
-          name={user.name !== "-" ? user.name : user.email}
+          name={user.name}
         />
       )}
 
@@ -72,22 +74,8 @@ export function NavUser({
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <Avatar className="h-8 w-8 rounded-lg">
-                  {user.avatar && (
-                    <AvatarImage
-                      src={user.avatar}
-                      alt={user.name}
-                      className="object-cover"
-                    />
-                  )}
-                  <AvatarFallback className="rounded-lg">
-                    {getInitials(user.name !== "-" ? user.name : user.email)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
-                </div>
+                {avatar}
+                {identity}
                 <ChevronsUpDown className="ml-auto size-4" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
@@ -98,32 +86,18 @@ export function NavUser({
               sideOffset={4}
             >
               <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    {user.avatar && (
-                      <AvatarImage
-                        src={user.avatar}
-                        alt={user.name}
-                        className="object-cover"
-                      />
-                    )}
-                    <AvatarFallback className="rounded-lg">
-                      {getInitials(user.name !== "-" ? user.name : user.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs">{user.email}</span>
-                  </div>
+                <div className="flex items-center gap-2 px-1 py-1.5">
+                  {avatar}
+                  {identity}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <SquareUserRound />
-                  <a href="/profile" className="w-full">
-                    My Profile
-                  </a>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <SquareUserRound />
+                    Profil Saya
+                  </Link>
                 </DropdownMenuItem>
                 {user.avatar && (
                   <DropdownMenuItem onSelect={() => setAvatarViewer(true)}>
@@ -133,9 +107,9 @@ export function NavUser({
                 )}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setLogoutDialog(true)}>
+              <DropdownMenuItem onSelect={() => setLogoutDialog(true)}>
                 <LogOut />
-                Log out
+                Keluar
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

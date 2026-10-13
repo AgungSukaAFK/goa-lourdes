@@ -10,6 +10,7 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  { ignores: [".next/**", "node_modules/**", "public/**", "legacy/**", "next-env.d.ts", "supabase/**"] },
   ...compat.config({
     extends: ["next/core-web-vitals", "next/typescript"],
     rules: {
@@ -17,7 +18,6 @@ const eslintConfig = [
       "@typescript-eslint/no-empty-object-type": "off",
       "react-hooks/exhaustive-deps": "off",
       "@typescript-eslint/ban-types": "off",
-      "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": "off",
     },
   }),

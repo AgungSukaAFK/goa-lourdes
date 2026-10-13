@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: { default: "GOA HZ", template: "%s · GOA HZ" },
   description: "Sistem General Affair Lourdes Group: aset, armada & P2H, dan tugas tim GA.",
   applicationName: "GOA HZ",
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192" }] },
   appleWebApp: { capable: true, title: "GOA HZ", statusBarStyle: "default" },
   formatDetection: { telephone: false },
 };
