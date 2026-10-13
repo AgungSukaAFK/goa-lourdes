@@ -90,3 +90,28 @@ export const FLEET_FUEL_RATING: StatusMap = {
   fair: { label: "Cukup", tone: "amber" },
   wasteful: { label: "Boros", tone: "red" },
 };
+
+// ---------------------------------------------------------------- GOA
+export const GOA_TASK_STATUS: StatusMap = {
+  pending: { label: "Pending", tone: "gray" },
+  in_progress: { label: "Dikerjakan", tone: "blue" },
+  done: { label: "Selesai", tone: "emerald" },
+  undone: { label: "Tidak selesai", tone: "red" },
+  expired: { label: "Hangus", tone: "orange" },
+  overdue: { label: "Lewat batas", tone: "amber" },
+};
+
+export const GOA_PRESENCE: StatusMap = {
+  hadir: { label: "Hadir", tone: "green" },
+  cuti: { label: "Cuti", tone: "sky" },
+  sakit: { label: "Sakit", tone: "amber" },
+  izin: { label: "Izin", tone: "gray" },
+  dinas: { label: "Dinas luar", tone: "indigo" },
+};
+
+export const GOA_SP: StatusMap = {
+  none: { label: "Tidak ada SP", tone: "gray" },
+  sp1: { label: "SP 1", tone: "amber" },
+  sp2: { label: "SP 2", tone: "orange" },
+  sp3: { label: "SP 3", tone: "red" },
+};

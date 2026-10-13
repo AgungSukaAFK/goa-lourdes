@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   CalendarCog,
   ClipboardList,
   Kanban,
@@ -38,7 +39,8 @@ export const goaModule: ModuleConfig = {
         { title: "Tim & KPI", url: "/goa/team", icon: UsersRound, roles: WORKERS, keywords: ["kpi", "tim", "matrix", "nilai", "sp"] },
         { title: "Saran Performa", url: "/goa/insights", icon: Lightbulb, roles: WORKERS, keywords: ["ai", "saran", "performa", "insight"] },
         { title: "Safety Topic", url: "/goa/safety", icon: ShieldCheck, keywords: ["k3", "safety", "keselamatan"] },
-        { title: "Pengaturan KPI", url: "/goa/settings", icon: SlidersHorizontal, roles: ["supervisor"], keywords: ["bobot", "parameter", "kpi", "hari libur"] },
+        { title: "Pengaturan KPI", url: "/goa/settings", icon: SlidersHorizontal, roles: ["supervisor"], keywords: ["bobot", "parameter", "kpi", "hari libur", "kategori"] },
+        { title: "SOP GOA", url: "/goa/sop", icon: BookOpen, keywords: ["panduan", "sop", "bantuan"] },
       ],
     },
   ],

@@ -5,7 +5,19 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { formatNumber } from "@/lib/utils";
 
 /** Garis satu seri dari waktu ke waktu (tanpa legenda; judul card menamai seri). */
-export function TimeLineChart({ data, label, height = 220 }: { data: { date: string; value: number }[]; label: string; height?: number }) {
+export function TimeLineChart({
+  data,
+  label,
+  unit = "",
+  height = 220,
+  domain = ["dataMin", "dataMax"],
+}: {
+  data: { date: string; value: number }[];
+  label: string;
+  unit?: string;
+  height?: number;
+  domain?: [number | string, number | string];
+}) {
   const config = { value: { label, color: "var(--color-primary)" } } satisfies ChartConfig;
   if (data.length < 2) return <p className="py-8 text-center text-sm text-muted-foreground">Data belum cukup untuk grafik.</p>;
   return (
@@ -20,12 +32,12 @@ export function TimeLineChart({ data, label, height = 220 }: { data: { date: str
           tick={{ fontSize: 11 }}
           tickFormatter={(v: string) => new Date(v).toLocaleDateString("id-ID", { day: "2-digit", month: "short" })}
         />
-        <YAxis tickLine={false} axisLine={false} width={56} tick={{ fontSize: 11 }} tickFormatter={(v: number) => formatNumber(v)} domain={["dataMin", "dataMax"]} />
+        <YAxis tickLine={false} axisLine={false} width={56} tick={{ fontSize: 11 }} tickFormatter={(v: number) => formatNumber(v)} domain={domain} />
         <ChartTooltip
           content={
             <ChartTooltipContent
               labelFormatter={(_, p) => new Date(p?.[0]?.payload?.date).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
-              formatter={(v) => `${formatNumber(Number(v))} km`}
+              formatter={(v) => `${formatNumber(Number(v))}${unit ? ` ${unit}` : ""}`}
             />
           }
         />

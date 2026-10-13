@@ -24,7 +24,9 @@ export function ListFilters({
   searchPlaceholder = "Cari...",
   fields = [],
   actions,
+  search = true,
 }: {
+  search?: boolean;
   searchPlaceholder?: string;
   fields?: FilterField[];
   actions?: React.ReactNode;
@@ -43,7 +45,9 @@ export function ListFilters({
 
   return (
     <div className="space-y-3">
+      {(search || actions) && (
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        {search && (
         <div className="relative w-full sm:max-w-sm">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -67,8 +71,10 @@ export function ListFilters({
             </button>
           )}
         </div>
+        )}
         {actions && <div className="flex flex-wrap gap-2 sm:ml-auto">{actions}</div>}
       </div>
+      )}
 
       {fields.length > 0 && (
         <FilterPanel

@@ -152,6 +152,9 @@ export function CustomThemeProvider({
   );
 }
 
+/** Versi aman: null kalau dipakai di luar provider (mis. render 404). */
+export const useOptionalCustomTheme = () => useContext(CustomThemeContext) ?? null;
+
 // Hook kustom untuk mempermudah penggunaan konteks tema aksen
 export const useCustomTheme = () => {
   const context = useContext(CustomThemeContext);

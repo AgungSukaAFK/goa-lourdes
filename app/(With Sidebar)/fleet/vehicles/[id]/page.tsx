@@ -82,7 +82,7 @@ export default async function VehicleDetail({ params }: { params: Promise<{ id: 
       </Content>
 
       <Content title="Riwayat KM" description="Dari P2H, BBM, trip, servis, dan input manual.">
-        <TimeLineChart label="KM" data={(odo ?? []).map((o) => ({ date: o.recorded_at, value: o.odometer }))} />
+        <TimeLineChart label="KM" unit="km" data={(odo ?? []).map((o) => ({ date: o.recorded_at, value: o.odometer }))} />
       </Content>
 
       <Content title="Riwayat">
