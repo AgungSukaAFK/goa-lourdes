@@ -18,6 +18,7 @@ import { ModuleSwitcher } from "./module-switcher";
 import {
   accessibleModules,
   adminGroup,
+  EXTERNAL_MODULES,
   moduleFromPath,
   navRole,
   visibleAdminItems,
@@ -127,7 +128,7 @@ export function AppSidebar({
             priority
           />
         </div>
-        <ModuleSwitcher modules={modules} active={active} />
+        <ModuleSwitcher externals={EXTERNAL_MODULES} modules={modules} active={active} />
       </SidebarHeader>
 
       <SidebarSearch query={query} onQueryChange={setQuery} onSubmit={openTopResult} />

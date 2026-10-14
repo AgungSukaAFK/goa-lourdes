@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { MODULE_ROLE_LABELS, type AppModule } from "@/lib/types";
-import type { ModuleConfig } from "@/lib/modules";
+import type { ExternalModuleConfig, ModuleConfig } from "@/lib/modules";
 import { setPendingNavUrl } from "@/lib/sidebar/nav-pending";
 
 type Entry = { config: ModuleConfig; role: string };
@@ -28,16 +28,19 @@ function roleLabel(module: AppModule, role: string) {
 
 /** Pindah subsistem (pola TeamSwitcher shadcn). Modul aktif = segmen URL. */
 export function ModuleSwitcher({
+  externals,
   modules,
   active,
 }: {
+  /** Web eksternal, tampil paling atas dan tidak pernah aktif. */
+  externals: ExternalModuleConfig[];
   modules: Entry[];
   active: AppModule | null;
 }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const current = modules.find((m) => m.config.id === active) ?? null;
 
-  if (modules.length === 0) return null;
+  if (modules.length === 0 && externals.length === 0) return null;
 
   const Icon = current?.config.icon;
 
@@ -71,6 +74,20 @@ export function ModuleSwitcher({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">Modul</DropdownMenuLabel>
+            {externals.map((config, i) => (
+              <DropdownMenuItem key={config.id} asChild className="gap-2 p-2">
+                <a href={config.href}>
+                  <div className="flex size-6 items-center justify-center rounded-md border">
+                    <config.icon className="size-3.5 shrink-0" />
+                  </div>
+                  <div className="grid flex-1 leading-tight">
+                    <span>{config.name}</span>
+                    <span className="text-xs text-muted-foreground">{config.description}</span>
+                  </div>
+                  <DropdownMenuShortcut>{i + 1}</DropdownMenuShortcut>
+                </a>
+              </DropdownMenuItem>
+            ))}
             {modules.map(({ config, role }, i) => (
               <DropdownMenuItem key={config.id} asChild className="gap-2 p-2">
                 <Link
@@ -90,7 +107,7 @@ export function ModuleSwitcher({
                   {config.id === active ? (
                     <Check className="size-4 text-primary" />
                   ) : (
-                    <DropdownMenuShortcut>{i + 1}</DropdownMenuShortcut>
+                    <DropdownMenuShortcut>{externals.length + i + 1}</DropdownMenuShortcut>
                   )}
                 </Link>
               </DropdownMenuItem>

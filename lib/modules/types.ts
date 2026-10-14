@@ -29,3 +29,12 @@ export type ModuleConfig = {
   keywords: string[];
   groups: NavGroup[];
 };
+
+/** Web lain di luar app ini; dibuka lewat link biasa (bukan router). */
+export type ExternalModuleConfig = {
+  id: string;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+  href: `https://${string}`;
+};

@@ -3,7 +3,7 @@ import { adminGroup } from "./admin";
 import { assetModule } from "./asset";
 import { fleetModule } from "./fleet";
 import { goaModule } from "./goa";
-import type { ModuleConfig, NavAccess, NavGroup, NavItem } from "./types";
+import type { ExternalModuleConfig, ModuleConfig, NavAccess, NavGroup, NavItem } from "./types";
 
 export const MODULES: ModuleConfig[] = [assetModule, fleetModule, goaModule];
 
@@ -67,4 +67,5 @@ export function titleForUrl(url: string): string | null {
 }
 
 export { adminGroup };
-export type { ModuleConfig, NavAccess, NavGroup, NavItem };
+export { EXTERNAL_MODULES } from "./external";
+export type { ExternalModuleConfig, ModuleConfig, NavAccess, NavGroup, NavItem };
