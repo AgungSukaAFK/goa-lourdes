@@ -16,6 +16,7 @@ const schema = z.object({
   frequency: z.enum(["daily", "weekly", "monthly"]),
   days: z.string().default(""),
   due_time: z.string().regex(/^\d{2}:\d{2}$/),
+  start_time: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal("")),
   company: z.enum(["GMI", "GIS", "LOURDES"]),
   skip_holidays: z.enum(["on"]).optional(),
   is_active: z.enum(["on"]).optional(),
@@ -28,12 +29,14 @@ export async function saveTemplate(fd: FormData): Promise<ActionResult> {
   const { id, days, skip_holidays, is_active, ...d } = p.data;
   const dayList = days.split(",").filter(Boolean).map(Number).filter((n) => Number.isInteger(n));
   if (d.frequency !== "daily" && !dayList.length) return fail("Pilih minimal satu hari.");
+  if (d.start_time && d.start_time > d.due_time) return fail("Jam mulai harus sebelum batas jam.");
   const row = {
     ...d,
     description: d.description || null,
     job_category: d.job_category || null,
     assignee_id: d.assignee_id || null,
     reviewer_id: d.reviewer_id || null,
+    start_time: d.start_time || null,
     days: d.frequency === "daily" ? [] : dayList,
     skip_holidays: skip_holidays === "on",
     is_active: is_active === "on",

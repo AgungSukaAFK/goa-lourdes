@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CalendarClock, Check, ExternalLink, Hand, MoreHorizontal, Pencil, Play, RotateCcw, Star, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
+import { CalendarClock, Check, Clock, ExternalLink, Hand, MoreHorizontal, Pencil, Play, RotateCcw, Star, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +22,8 @@ import { cn, formatDateTime } from "@/lib/utils";
 import { isClosed, type GoaTask } from "@/lib/goa/types";
 import { deleteTask, finishTask, rateTask, reopenTask, startTask } from "../actions";
 import { TaskFormDialog } from "./task-form";
+import { FILE_HINT, FileField, TaskFilesDialog } from "./task-files";
+import { pickFiles, uploadTaskFiles } from "@/lib/goa/files";
 
 export type TaskCtx = {
   selfId: string;
@@ -33,6 +36,8 @@ export type TaskCtx = {
 
 export function FinishButtons({ task }: { task: GoaTask }) {
   const { run } = useAction();
+  // Server tetap memeriksa bukti 'after'; di sini cukup cek kasar supaya user tidak menunggu upload dulu.
+  const needProof = task.source !== "p2h";
   return (
     <>
       <FormDialog
@@ -44,11 +49,35 @@ export function FinishButtons({ task }: { task: GoaTask }) {
         }
         title={`Selesaikan ${task.code}`}
         submitText="Selesai"
-        onSubmit={(fd) => run(() => finishTask(task.id, true, String(fd.get("note") ?? "")))}
+        onSubmit={async (fd) => {
+          const files = pickFiles(fd.getAll("files"));
+          if (needProof && !files.length && !task.file_count) {
+            toast.error("Lampirkan bukti selesai (foto/dokumen).");
+            return false;
+          }
+          let uploaded: Awaited<ReturnType<typeof uploadTaskFiles>> = [];
+          try {
+            uploaded = await uploadTaskFiles(task.id, files);
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Upload bukti gagal.");
+            return false;
+          }
+          return run(() => finishTask(task.id, true, String(fd.get("note") ?? ""), uploaded));
+        }}
       >
         <Field label="Catatan hasil" htmlFor={`dn-${task.id}`}>
           <Textarea id={`dn-${task.id}`} name="note" rows={3} placeholder="Apa yang dikerjakan / hasilnya" />
         </Field>
+        {task.source !== "p2h" && (
+          <Field
+            label="Bukti selesai"
+            htmlFor={`df-${task.id}`}
+            required={needProof}
+            hint={task.file_count ? `${FILE_HINT} Bukti yang sudah dilampirkan sebelumnya tetap dihitung.` : FILE_HINT}
+          >
+            <FileField id={`df-${task.id}`} name="files" />
+          </Field>
+        )}
       </FormDialog>
       <FormDialog
         trigger={
@@ -169,6 +198,12 @@ export function TaskCard({ task, ctx, compact }: { task: GoaTask; ctx: TaskCtx; 
         {task.source === "p2h" && <Badge variant="outline" className="text-[10px]">P2H</Badge>}
         <span className="text-muted-foreground">{task.assignee_name ?? "General Pool"}</span>
       </div>
+      {task.status === "pending" && task.start_at && (
+        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Clock className="size-3.5" />
+          {task.assignee_id ? "Mulai otomatis" : "Jadwal mulai"} {formatDateTime(task.start_at)}
+        </p>
+      )}
       {task.due_at && (
         <p className={cn("flex items-center gap-1 text-xs", task.is_overdue ? "text-orange-700 dark:text-orange-300" : "text-muted-foreground")}>
           <CalendarClock className="size-3.5" /> {formatDateTime(task.due_at)}
@@ -196,6 +231,7 @@ export function TaskCard({ task, ctx, compact }: { task: GoaTask; ctx: TaskCtx; 
           </Button>
         )}
         {isClosed(task) && <RatingStars task={task} canRate={canRate} />}
+        <TaskFilesDialog task={task} ctx={ctx} />
       </div>
     </div>
   );

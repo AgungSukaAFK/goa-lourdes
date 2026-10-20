@@ -808,7 +808,30 @@ const taskRows = G.tasks
     };
   });
 for (const t of G.tasks) if (str(t.tim) && t.tim !== "General/Pending" && !goaUser(t.tim)) R.note(`Tugas ${t.id}: PIC "${t.tim}" tidak ada di user GOA, jadi General Pool.`);
-R.count("tugas", (await upsert("goa_tasks", taskRows, "code", "id")).length);
+const taskOut = await upsert("goa_tasks", taskRows, "code", "id, code");
+R.count("tugas", taskOut.length);
+
+// Foto tugas lama: "BEFORE:<url>|||AFTER:<url>"; tanpa prefix = after kalau tugas sudah ditutup, selain itu before.
+const taskIdByCode = new Map(taskOut.map((t) => [t.code, t.id]));
+let taskPhotoOk = 0, taskPhotoFail = 0;
+for (const t of G.tasks) {
+  const id = taskIdByCode.get(`TSK-LEGACY-${t.id}`);
+  if (!id || DRY || !PHOTOS || !str(t.foto)) continue;
+  const closed = ["done", "undone", "hangus"].includes(String(t.status ?? "").toLowerCase());
+  const parts = String(t.foto).split("|||").map((p) =>
+    p.startsWith("BEFORE:") ? ["before", p.slice(7)] : p.startsWith("AFTER:") ? ["after", p.slice(6)] : [closed ? "after" : "before", p],
+  );
+  await db.from("goa_task_files").delete().eq("task_id", id).like("path", `${id}/legacy-%`);
+  for (const [kind, src] of parts) {
+    const path = await uploadImage("goa-files", `${id}/legacy-${kind}`, src.trim());
+    if (!path) { taskPhotoFail++; continue; }
+    const ext = path.split(".").pop();
+    await db.from("goa_task_files").insert({ task_id: id, kind, path, name: `foto-${kind}.${ext}`, mime: ext === "jpg" ? "image/jpeg" : `image/${ext}` });
+    taskPhotoOk++;
+  }
+}
+R.count("foto tugas GOA terupload", taskPhotoOk);
+if (taskPhotoFail) R.note(`${taskPhotoFail} foto tugas GOA gagal diunduh/diupload (biasanya file Drive tidak dibagikan publik).`);
 
 const PKEY = { P1: "speed", P2: "quality", P3: "done_ratio", P4: "active_ratio" };
 const kpiRows = [];

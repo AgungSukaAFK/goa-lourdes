@@ -13,6 +13,8 @@ export type GoaTask = {
   status: "pending" | "in_progress" | "done" | "undone" | "expired";
   rating: number | null;
   start_time: string | null;
+  /** Jadwal mulai otomatis (cron tiap 5 menit, hanya tugas ber-PIC). */
+  start_at: string | null;
   due_at: string | null;
   completed_at: string | null;
   duration_minutes: number | null;
@@ -20,13 +22,58 @@ export type GoaTask = {
   done_notes: string | null;
   source: "manual" | "template" | "p2h";
   link: string | null;
+  created_by: string | null;
   created_at: string;
   // view
   assignee_name: string | null;
   reviewer_name: string | null;
   created_by_name: string | null;
   is_overdue: boolean;
+  file_count: number;
 };
+
+export type GoaFileKind = "before" | "after" | "review";
+
+export type GoaTaskFile = {
+  id: string;
+  task_id: string;
+  kind: GoaFileKind;
+  path: string;
+  name: string;
+  mime: string;
+  size: number;
+  uploaded_by: string | null;
+  uploader_name: string | null;
+  created_at: string;
+  url: string | null;
+};
+
+export const FILE_KINDS: { kind: GoaFileKind; label: string; desc: string }[] = [
+  { kind: "before", label: "Foto before", desc: "Kondisi awal dari atasan / pembuat tugas." },
+  { kind: "after", label: "Bukti selesai", desc: "Foto/dokumen hasil pekerjaan dari PIC." },
+  { kind: "review", label: "Lampiran reviewer", desc: "File dari reviewer/atasan saat menilai." },
+];
+
+export const MAX_FILES_PER_KIND = 10;
+export const MAX_FILE_MB = 10;
+export const FILE_ACCEPT = "image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.xls,.xlsx";
+
+type Who = { selfId: string; isSupervisor: boolean; canWork: boolean };
+
+/** Sama dengan cek di goa_add_task_files. */
+export function canUploadKind(t: Pick<GoaTask, "status" | "assignee_id" | "reviewer_id" | "created_by">, kind: GoaFileKind, who: Who) {
+  const open = t.status === "pending" || t.status === "in_progress";
+  if (kind === "before") return open && (who.isSupervisor || t.created_by === who.selfId);
+  if (kind === "after") return who.canWork && (open || t.status === "done") && (who.isSupervisor || (t.assignee_id ?? who.selfId) === who.selfId);
+  return !open && (who.isSupervisor || t.reviewer_id === who.selfId) && t.assignee_id !== who.selfId;
+}
+
+/** Sama dengan cek di goa_delete_task_file. */
+export function canDeleteFile(f: Pick<GoaTaskFile, "kind" | "uploaded_by">, t: Pick<GoaTask, "status">, who: Pick<Who, "selfId" | "isSupervisor">) {
+  if (who.isSupervisor) return true;
+  if (f.uploaded_by !== who.selfId) return false;
+  return f.kind !== "after" || t.status === "pending" || t.status === "in_progress";
+}
 
 export type TeamMember = {
   id: string;

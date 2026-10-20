@@ -10,7 +10,7 @@ import { exportTasksPptx } from "@/lib/goa/pptx";
 import { GOA_TASK_STATUS } from "@/lib/status";
 import { formatDateTime } from "@/lib/utils";
 import type { GoaTask } from "@/lib/goa/types";
-import { exportTasks } from "../actions";
+import { exportProofPhotos, exportTasks } from "../actions";
 
 export function ExportButtons() {
   const sp = useSearchParams();
@@ -46,10 +46,12 @@ export function ExportButtons() {
                   { header: "PIC", key: "assignee_name", value: (r) => r.assignee_name ?? "General Pool" },
                   { header: "Status", key: "status", value: (r) => GOA_TASK_STATUS[r.status]?.label ?? r.status },
                   { header: "Dibuat", key: "created_at", value: (r) => formatDateTime(r.created_at) },
+                  { header: "Jadwal mulai", key: "start_at", value: (r) => (r.start_at ? formatDateTime(r.start_at) : "") },
                   { header: "Batas", key: "due_at", value: (r) => (r.due_at ? formatDateTime(r.due_at) : "") },
                   { header: "Selesai", key: "completed_at", value: (r) => (r.completed_at ? formatDateTime(r.completed_at) : "") },
                   { header: "Durasi (menit)", key: "duration_minutes" },
                   { header: "Nilai", key: "rating" },
+                  { header: "Lampiran", key: "file_count" },
                   { header: "Catatan", key: "done_notes", width: 30 },
                   { header: "Alasan tidak selesai", key: "undone_reason", width: 30 },
                 ],
@@ -67,7 +69,12 @@ export function ExportButtons() {
         onClick={async () => {
           setBusy("pptx");
           const rows = await load();
-          if (rows) await exportTasksPptx(rows, "Laporan Tugas Tim GA");
+          if (rows) {
+            const done = rows.filter((r) => r.status === "done" && r.file_count > 0).map((r) => r.id);
+            const photos = done.length ? await exportProofPhotos(done) : null;
+            if (photos && !photos.ok) toast.error(`Foto bukti dilewati: ${photos.error}`);
+            await exportTasksPptx(rows, "Laporan Tugas Tim GA", photos?.ok ? photos.data : []);
+          }
           setBusy(null);
         }}
       >

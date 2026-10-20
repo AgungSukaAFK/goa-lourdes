@@ -15,6 +15,7 @@ import { isClosed, type GoaTask } from "@/lib/goa/types";
 import { RatingStars, canRateTask, type TaskCtx } from "../_components/task-card";
 import { deleteTasks, rateTasks } from "../actions";
 import { TaskRowMenu } from "./task-row-menu";
+import { TaskFilesDialog } from "../_components/task-files";
 
 export function TaskTable({ rows, ctx }: { rows: GoaTask[]; ctx: TaskCtx }) {
   const { run, pending } = useAction();
@@ -84,7 +85,7 @@ export function TaskTable({ rows, ctx }: { rows: GoaTask[]; ctx: TaskCtx }) {
             <SortHead k="due">Batas</SortHead>
             <TableHead>Status</TableHead>
             <TableHead>Nilai</TableHead>
-            <TableHead className="w-12" />
+            <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -106,7 +107,10 @@ export function TaskTable({ rows, ctx }: { rows: GoaTask[]; ctx: TaskCtx }) {
               </TableCell>
               <TableCell>{t.assignee_name ?? <span className="text-muted-foreground">General Pool</span>}</TableCell>
               <TableCell className="whitespace-nowrap text-sm">{formatDateTime(t.created_at)}</TableCell>
-              <TableCell className="whitespace-nowrap text-sm">{t.due_at ? formatDateTime(t.due_at) : "-"}</TableCell>
+              <TableCell className="whitespace-nowrap text-sm">
+                {t.due_at ? formatDateTime(t.due_at) : "-"}
+                {t.status === "pending" && t.start_at && <div className="text-xs text-muted-foreground">Mulai {formatDateTime(t.start_at)}</div>}
+              </TableCell>
               <TableCell>
                 <StatusBadge map={GOA_TASK_STATUS} value={t.is_overdue ? "overdue" : t.status} />
                 {t.duration_minutes != null && t.status === "done" && <div className="mt-0.5 text-xs text-muted-foreground">{t.duration_minutes} menit</div>}
@@ -115,7 +119,10 @@ export function TaskTable({ rows, ctx }: { rows: GoaTask[]; ctx: TaskCtx }) {
                 {isClosed(t) ? <RatingStars task={t} canRate={canRateTask(t, ctx)} /> : <span className="text-muted-foreground">-</span>}
               </TableCell>
               <TableCell>
-                <TaskRowMenu task={t} ctx={ctx} />
+                <div className="flex items-center justify-end">
+                  <TaskFilesDialog task={t} ctx={ctx} size="icon" />
+                  <TaskRowMenu task={t} ctx={ctx} />
+                </div>
               </TableCell>
             </TableRow>
           ))}

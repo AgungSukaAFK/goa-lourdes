@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FormDialog } from "@/components/form-dialog";
 import { OptionSelect, type Option } from "@/components/option-select";
 import { useAction } from "@/hooks/use-action";
 import type { GoaTask } from "@/lib/goa/types";
+import { attachTaskFiles, pickFiles } from "@/lib/goa/files";
 import { saveTask } from "../actions";
+import { FILE_HINT, FileField } from "./task-files";
 
 const POOL = "";
 
@@ -44,7 +47,23 @@ export function TaskFormDialog({
     : [{ value: POOL, label: "General Pool (siapa saja)" }, ...members.filter((m) => m.value === selfId)];
 
   return (
-    <FormDialog trigger={trigger} title={task ? `Edit ${task.code}` : "Tugas baru"} onSubmit={(fd) => run(() => saveTask(fd))} className="sm:max-w-xl">
+    <FormDialog trigger={trigger} title={task ? `Edit ${task.code}` : "Tugas baru"} onSubmit={async (fd) => {
+        const files = task ? [] : pickFiles(fd.getAll("files"));
+        // File diupload langsung ke storage, jangan ikut terkirim ke server action.
+        fd.delete("files");
+        let id: string | undefined;
+        const ok = await run(() => saveTask(fd), { onSuccess: (d) => (id = d?.id) });
+        if (ok && id && files.length) {
+          // Tugas sudah tersimpan; kalau foto gagal, bisa diupload ulang dari tombol Lampiran.
+          try {
+            const res = await attachTaskFiles(id, "before", files);
+            if (!res.ok) toast.error(`Tugas tersimpan, tapi foto before gagal: ${res.error}`);
+          } catch (e) {
+            toast.error(`Tugas tersimpan, tapi foto before gagal: ${e instanceof Error ? e.message : "upload gagal"}`);
+          }
+        }
+        return ok;
+      }} className="sm:max-w-xl">
       {task && <input type="hidden" name="id" value={task.id} />}
       <input type="hidden" name="assignee_id" value={assignee} />
       <input type="hidden" name="reviewer_id" value={reviewer} />
@@ -66,6 +85,19 @@ export function TaskFormDialog({
         <Field label="Kategori">
           <OptionSelect value={category} onValueChange={setCategory} options={[{ value: "", label: "Tanpa kategori" }, ...categories.map((c) => ({ value: c, label: c }))]} />
         </Field>
+        <Field
+          label="Jadwal mulai"
+          htmlFor="tk-start"
+          hint={assignee ? "Otomatis berstatus Dikerjakan pada waktu ini." : "Mulai otomatis hanya untuk tugas yang punya PIC."}
+        >
+          <Input
+            id="tk-start"
+            name="start_at"
+            type="datetime-local"
+            defaultValue={toLocalInput(task?.start_at ?? null)}
+            disabled={!!task && task.status !== "pending"}
+          />
+        </Field>
         <Field label="Batas waktu" htmlFor="tk-due">
           <Input id="tk-due" name="due_at" type="datetime-local" defaultValue={toLocalInput(task?.due_at ?? null)} />
         </Field>
@@ -75,6 +107,11 @@ export function TaskFormDialog({
           </Field>
         )}
       </div>
+      {!task && (
+        <Field label="Foto before / lampiran" htmlFor="tk-files" hint={FILE_HINT}>
+          <FileField id="tk-files" name="files" />
+        </Field>
+      )}
     </FormDialog>
   );
 }

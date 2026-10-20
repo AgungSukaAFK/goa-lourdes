@@ -24,6 +24,7 @@ export type Template = {
   frequency: "daily" | "weekly" | "monthly";
   days: number[];
   due_time: string;
+  start_time: string | null;
   company: string;
   skip_holidays: boolean;
   is_active: boolean;
@@ -107,6 +108,9 @@ export function TemplateDialog({
               { value: "monthly", label: "Tanggal tertentu tiap bulan" },
             ]}
           />
+        </Field>
+        <Field label="Jam mulai otomatis" htmlFor="tp-start" hint={assignee ? "Kosongkan kalau PIC memulai sendiri." : "Hanya berlaku kalau ada PIC."}>
+          <Input id="tp-start" name="start_time" type="time" defaultValue={template?.start_time?.slice(0, 5) ?? ""} />
         </Field>
         <Field label="Batas jam" htmlFor="tp-time">
           <Input id="tp-time" name="due_time" type="time" defaultValue={template?.due_time?.slice(0, 5) ?? "17:00"} required />
